@@ -1,51 +1,85 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import { connectToDB, insertData, fetchData, updateData, deleteData, closeDBConnection } from './db';
+import mongoose from 'mongoose';
+import { Server } from 'socket.io';
+import userRoutes from './routes/userRoutes';
+
+// handleMessage関数の定義
+async function handleMessage(message: string, userId: string) {
+  console.log(`Processing message: ${message} from user: ${userId}`);
+  // ここでメッセージとユーザーIDを用いた処理を行う
+  // 例: データベースにメッセージを保存
+  // その他の処理...
+}
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const io = new Server(3001); // WebSocketサーバーは3001ポートで起動
+const PORT = process.env.PORT || 3000; // HTTPサーバーは3000ポートで起動
 
-// Middleware for parsing JSON bodies
+// 既存のミドルウェア
 app.use(bodyParser.json());
 
+// 新たに追加するミドルウェア
+app.use(express.json());
+
+mongoose.connect('mongodb://localhost:27017/chatbot', { useNewUrlParser: true, useUnifiedTopology: true } as any);
+
 app.get('/', async (req: Request, res: Response) => {
-    await connectToDB();
-    res.send('Connected to MongoDB');
+  res.send('Connected to MongoDB');
 });
 
-// 新規データの追加
 app.post('/add', async (req: Request, res: Response) => {
-    const data = req.body; // Assuming data is in JSON format in the request body
-    await insertData([data]);
-    res.send('Data added');
+  const data = req.body;
+  await insertData([data]);
+  res.send('Data added');
 });
 
-// データの取得
 app.get('/data', async (req: Request, res: Response) => {
-    const data = await fetchData();
-    res.json(data);
+  const data = await fetchData();
+  res.json(data);
 });
 
-// データの更新
 app.put('/update/:id', async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const newData = req.body;
-    await updateData(id, newData);
-    res.send('Data updated');
+  const id = req.params.id;
+  const newData = req.body;
+  await updateData(id, newData);
+  res.send('Data updated');
 });
 
-// データの削除
 app.delete('/delete/:id', async (req: Request, res: Response) => {
-    const id = req.params.id;
-    await deleteData(id);
-    res.send('Data deleted');
+  const id = req.params.id;
+  await deleteData(id);
+  res.send('Data deleted');
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.use('/api/users', userRoutes);
+
+io.on('connection', (socket) => {
+  console.log('New client connected');
+
+  socket.on('message', async (message, userId) => {
+    console.log(`Received message ${message} from user ${userId}`);
+
+    try {
+      await handleMessage(message, userId);
+      socket.emit('message', 'Message processed');
+    } catch (error) {
+      console.error(`Error while handling message: ${error}`);
+      socket.emit('message', 'Error while processing message');
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
 });
 
-// Close the database connection when the Node process is terminated
+app.listen(PORT, async () => {
+  await connectToDB();
+  console.log(`Server is running on port ${PORT}`);
+});
+
 process.on('exit', async () => {
-    await closeDBConnection();
+  await closeDBConnection();
 });
