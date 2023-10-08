@@ -1,3 +1,4 @@
+import path from 'path';
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import { connectToDB, insertData, fetchData, updateData, deleteData, closeDBConnection } from './db';
@@ -25,8 +26,11 @@ app.use(express.json());
 
 mongoose.connect('mongodb://localhost:27017/chatbot', { useNewUrlParser: true, useUnifiedTopology: true } as any);
 
-app.get('/', async (req: Request, res: Response) => {
-  res.send('Connected to MongoDB');
+app.use(express.static(path.join(__dirname, 'views')));
+
+// GETリクエストでトップページを表示
+app.get('/', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 app.post('/add', async (req: Request, res: Response) => {
