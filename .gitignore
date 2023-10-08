@@ -1,0 +1,6 @@
+# 既存の無視ルール
+node_modules/
+dist/
+
+# MongoDB データディレクトリ
+mongodb_data/
