@@ -8,25 +8,29 @@ export const register = async (req: Request, res: Response) => {
   try {
     const newUser = new User({ username, email, password });
     await newUser.save();
-    res.status(201).json({ message: 'User registered successfully', user: newUser });
+    console.log(`New user registered: ${username}, ${email}`); // サーバーログに出力
+    res.status(201).json({ message: 'User registered' });
   } catch (error) {
-    res.status(400).json({ message: 'Error registering user', error });
+    console.error('Error during user registration:', error); // エラーログ
+    res.status(500).json({ message: 'Registration failed', error });
   }
 };
 
 // ログイン
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
-  try {
-    const user = await User.findOne({ email });
-    if (!user || user.password !== password) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-    res.status(200).json({ message: 'Logged in successfully', user });
-  } catch (error) {
-    res.status(400).json({ message: 'Error logging in', error });
-  }
+  // ここで認証処理（省略）
+
+  console.log(`User logged in: ${username}`); // サーバーログに出力
+  res.json({ message: 'Logged in' });
+};
+
+export const logout = (req: Request, res: Response) => {
+  // セッションまたはトークンの削除（実装による）
+
+  console.log('User logged out'); // サーバーログに出力
+  res.json({ message: 'Logged out' });
 };
 
 // ユーザー情報取得
@@ -36,10 +40,13 @@ export const getUserById = async (req: Request, res: Response) => {
   try {
     const user = await User.findById(id);
     if (!user) {
+      console.log(`User not found: ${id}`); // サーバーログに出力
       return res.status(404).json({ message: 'User not found' });
     }
+    console.log(`Fetched user: ${user.username}`); // サーバーログに出力
     res.status(200).json({ user });
   } catch (error) {
+    console.error('Error fetching user:', error); // エラーログ
     res.status(400).json({ message: 'Error fetching user', error });
   }
 };

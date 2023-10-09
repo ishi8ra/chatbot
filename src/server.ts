@@ -5,6 +5,11 @@ import { connectToDB, insertData, fetchData, updateData, deleteData, closeDBConn
 import mongoose from 'mongoose';
 import { Server } from 'socket.io';
 import userRoutes from './routes/userRoutes';
+// import { MongoClient } from 'mongodb';
+
+mongoose.connect('mongodb://root:password@localhost:27017/admin', { useNewUrlParser: true, useUnifiedTopology: true } as any)
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log(err));
 
 // handleMessage関数の定義
 async function handleMessage(message: string, userId: string) {
@@ -18,13 +23,20 @@ const app = express();
 const io = new Server(3001); // WebSocketサーバーは3001ポートで起動
 const PORT = process.env.PORT || 3000; // HTTPサーバーは3000ポートで起動
 
-// 既存のミドルウェア
 app.use(bodyParser.json());
-
-// 新たに追加するミドルウェア
 app.use(express.json());
+app.use('/api/users', userRoutes);
 
-mongoose.connect('mongodb://localhost:27017/chatbot', { useNewUrlParser: true, useUnifiedTopology: true } as any);
+
+const MongoClient = require('mongodb').MongoClient;
+const uri = "mongodb://root:password@localhost:27017/admin";
+const client = new MongoClient(uri, { useNewUrlParser: true });
+client.connect((err: Error | null ) => {
+    // creating collection
+    const collection = client.db("test").collection("devices");
+    // perform actions on the collection object
+    client.close();
+});
 
 app.use(express.static(path.join(__dirname, 'views')));
 
@@ -57,8 +69,6 @@ app.delete('/delete/:id', async (req: Request, res: Response) => {
   res.send('Data deleted');
 });
 
-app.use('/api/users', userRoutes);
-
 io.on('connection', (socket) => {
   console.log('New client connected');
 
@@ -80,7 +90,6 @@ io.on('connection', (socket) => {
 });
 
 app.listen(PORT, async () => {
-  await connectToDB();
   console.log(`Server is running on port ${PORT}`);
 });
 
