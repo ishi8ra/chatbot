@@ -1,12 +1,15 @@
 import { Request, Response } from 'express';
 import User from '../models/User'; // Userモデルをインポート
+import bcrypt from 'bcrypt';
 
 // ユーザー登録
 export const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
 
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   try {
-    const newUser = new User({ username, email, password });
+    const newUser = new User({ username, email, password: hashedPassword });
     await newUser.save();
     console.log(`New user registered: ${username}, ${email}`); // サーバーログに出力
     res.status(201).json({ message: 'User registered' });
@@ -20,10 +23,32 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
-  // ここで認証処理（省略）
+  try {
+    // ユーザー名でユーザーを検索
+    const user = await User.findOne({ username });
 
-  console.log(`User logged in: ${username}`); // サーバーログに出力
-  res.json({ message: 'Logged in' });
+    // ユーザーが存在しない場合
+    if (!user) {
+      return res.status(401).json({ message: 'Authentication failed. User not found.' });
+    }
+
+    // パスワードの比較
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log(password);
+    console.log(user.password);
+
+    // パスワードが一致しない場合
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Authentication failed. Wrong password.' });
+    }
+
+    console.log(`User logged in: ${username}`); // サーバーログに出力
+    res.json({ message: 'Logged in' });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
 export const logout = (req: Request, res: Response) => {

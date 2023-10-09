@@ -20,6 +20,21 @@
         const data = await response.json();
         alert(data.message);
       }
+      async function loginUser() {
+        const username = document.getElementById("loginUsername").value;
+        const password = document.getElementById("loginPassword").value;
+
+        const response = await fetch("/api/users/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const data = await response.json();
+        alert(data.message);
+      }
     </script>
   </head>
   <body>
@@ -36,6 +51,18 @@
       <input type="password" id="password" name="password" required />
       <br />
       <input type="button" value="Register" onclick="registerUser()" />
+    </form>
+
+    <!-- ログインフォーム -->
+    <h2>User Login</h2>
+    <form id="loginForm">
+      <label for="loginUsername">Username:</label>
+      <input type="text" id="loginUsername" name="username" required />
+      <br />
+      <label for="loginPassword">Password:</label>
+      <input type="password" id="loginPassword" name="password" required />
+      <br />
+      <input type="button" value="Login" onclick="loginUser()" />
     </form>
   </body>
 </html>
