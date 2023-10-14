@@ -40,9 +40,17 @@ client.connect((err: Error | null ) => {
 
 app.use(express.static(path.join(__dirname, 'views')));
 
-// GETリクエストでトップページを表示
-app.get('/', (req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
+// GETリクエストでregisterページを表示
+app.get('/register', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'views', 'register.html'));
+});
+// GETリクエストでloginページを表示
+app.get('/login', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'views', 'login.html'));
+});
+// GETリクエストでhomeページを表示
+app.get('/home', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'views', 'home.html'));
 });
 
 app.post('/add', async (req: Request, res: Response) => {
