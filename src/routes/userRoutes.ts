@@ -6,6 +6,9 @@ const router = express.Router();
 router.post('/register', userController.register);
 router.post('/login', userController.login);
 router.post('/logout', userController.logout);
-// その他のエンドポイント
+
+// 新たに追加するエンドポイント（例）
+// router.put('/update/:userId', userController.updateUser);
+
 
 export default router;

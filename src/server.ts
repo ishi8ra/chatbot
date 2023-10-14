@@ -5,7 +5,7 @@ import { connectToDB, insertData, fetchData, updateData, deleteData, closeDBConn
 import mongoose from 'mongoose';
 import { Server } from 'socket.io';
 import userRoutes from './routes/userRoutes';
-// import { MongoClient } from 'mongodb';
+import messageRoutes from './routes/messageRoutes';
 
 mongoose.connect('mongodb://root:password@localhost:27017/admin', { useNewUrlParser: true, useUnifiedTopology: true } as any)
   .then(() => console.log('MongoDB Connected'))
@@ -23,9 +23,14 @@ const app = express();
 const io = new Server(3001); // WebSocketサーバーは3001ポートで起動
 const PORT = process.env.PORT || 3000; // HTTPサーバーは3000ポートで起動
 
+// ミドルウェア設定
 app.use(bodyParser.json());
 app.use(express.json());
+
+
 app.use('/api/users', userRoutes);
+// 新たにmessageRoutesを追加
+app.use('/api/messages', messageRoutes);
 
 
 const MongoClient = require('mongodb').MongoClient;
